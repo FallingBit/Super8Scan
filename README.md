@@ -66,6 +66,11 @@ Prima di cominciare, il puntatore del mouse va posizionato sulla finestra di Sup
 3. **Avvia acquisizione**: ogni click sinistro del mouse, in qualsiasi punto dello schermo, salva un fotogramma
    (`fotogramma_000001.jpg`, ...). Il pulsante *Ferma* non conta. Se la cartella contiene già fotogrammi, la
    numerazione prosegue.
+   **Avviso di giuntura**: una bobina da 15 m ha circa 3600 fotogrammi e le bobine più grandi sono bobine piccole
+   giuntate dopo lo sviluppo. Intorno a 3600, 7200, 10800… (da 200 fotogrammi prima a 200 dopo, regolabile) la cornice
+   dell'anteprima diventa **gialla**, compare un avviso e, se vuoi, suona un segnale: le vecchie giunture possono
+   staccarsi o fare uno sbalzo nella meccanica. Le impostazioni sono sotto il pulsante *Avvia acquisizione*; il conteggio
+   usa il numero del fotogramma, quindi vale anche se la scansione riprende in una cartella già avviata.
 4. **Controllo dei fotogrammi**: il programma misura la posizione del **foro** della pellicola (a sinistra) in tutti i
    fotogrammi. Se è spostato, deformato o sfocato (scia), il fotogramma è sospetto: li vedi in un elenco con le
    miniature e decidi tu quali scartare. Gli scartati non si cancellano: nel video si possono saltare oppure
@@ -131,6 +136,21 @@ Così lavora l'autore; è solo un'indicazione, ognuno può adattarla.
 10. **Pellicole con pista sonora magnetica**: serve un secondo passaggio con un proiettore sonoro modificato per
     prelevare il segnale direttamente dalle testine audio, l'unico modo per recuperare il sonoro originale. La
     traccia si sistema poi in DaVinci Resolve sotto il video, in sincrono.
+
+## Bobine e durate
+
+Durate standard del film muto (18 fps) e sonoro (24 fps). I fotogrammi sono approssimativi: una bobina da 15 m
+(50 piedi) ne ha circa 3600.
+
+| Bobina | Pellicola | Fotogrammi circa | A 18 fps (muto) | A 24 fps (sonoro) |
+|---|---|---|---|---|
+| 7,5 cm | 15 m (50 piedi) | 3600 | 3 - 3,5 minuti | circa 2,5 minuti |
+| 13 cm | 60 m (200 piedi) | 14400 | circa 13 minuti | circa 10 minuti |
+| 18 cm | 120 m (400 piedi) | 28800 | 26 - 27 minuti | circa 20 minuti |
+
+In ambito consumer le vecchie cineprese caricavano solo la bobina piccola: le bobine più grandi sono state ottenute
+**giuntando** più bobine da 15 m dopo lo sviluppo. Per questo ogni circa 3600 fotogrammi c'è una giuntura, e il software
+avvisa (vedi sopra).
 
 ## Stato e cose da fare
 

@@ -184,6 +184,22 @@ for i in range(1, 21):
 res = controllo.analizza(cart2)
 check("errore" in res, "senza foro: nessuna analisi inventata (%s)" % res.get("errore", ""))
 
+# avviso di giuntura: zone intorno a 3600, 7200, ... e solo durante l'acquisizione
+g = m.avviso_giuntura
+check(g(3399, 3600, 200) is None and g(3400, 3600, 200) == {"obiettivo": 3600, "restano": 200}, "giuntura: l'avviso parte a 3400")
+check(g(3600, 3600, 200)["restano"] == 0 and g(3800, 3600, 200)["restano"] == -200 and g(3801, 3600, 200) is None, "giuntura: finisce a 3800")
+check(g(1, 3600, 200) is None and g(0, 3600, 200) is None and g(5000, 3600, 200) is None, "giuntura: fuori zona nessun avviso")
+check(g(7100, 3600, 200)["obiettivo"] == 7200 and g(10800, 3600, 200)["obiettivo"] == 10800, "giuntura: si ripete a ogni bobina")
+check(g(3500, 3600, 0) is None and g(3600, 3600, 0)["restano"] == 0, "giuntura: margine zero")
+a.s.update(giuntura_avviso=True, bobina_fotogrammi=3600, giuntura_margine=200)
+a.armed = False; a.next_index = 3501
+check(a.state()["giuntura"] is None, "giuntura: nessun avviso se non si sta acquisendo")
+a.armed = True
+check(a.state()["giuntura"]["restano"] == 100, "giuntura: stato in acquisizione (n. 3500 -> restano 100: %s)" % a.state()["giuntura"])
+a.s["giuntura_avviso"] = False
+check(a.state()["giuntura"] is None, "giuntura: disattivabile")
+a.armed = False; a.s["giuntura_avviso"] = True
+
 a.shutdown()
 shutil.rmtree(tmp, ignore_errors=True)
 print("ERRORI:", check.fails)

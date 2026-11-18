@@ -67,7 +67,23 @@ DEFAULTS = {
     "video_trim_white": True,    # esclude dal video i fotogrammi bianchi in fondo alla scansione
     "video_scartati_modo": "salta",   # fotogrammi scartati dal controllo: "salta" oppure "ripeti" il precedente
     "controllo_sposta": 10,      # spostamento del foro (in % della sua altezza) oltre il quale il fotogramma e sospetto
+    "giuntura_avviso": True,     # avvisa quando sta per arrivare la giuntura tra due bobine
+    "giuntura_beep": True,       # segnale acustico quando si entra nella zona della giuntura
+    "bobina_fotogrammi": 3600,   # fotogrammi di una bobina da 15 m (7,5 cm): le bobine grandi sono bobine piccole giuntate
+    "giuntura_margine": 200,     # l'avviso va da (bobina - margine) a (bobina + margine), e si ripete a ogni bobina
 }
+
+
+def avviso_giuntura(n, bobina, margine):
+    """Dice se il fotogramma n e vicino a una giuntura tra bobine da "bobina" fotogrammi.
+    Ritorna None fuori dalle zone di avviso, altrimenti un dizionario con il fotogramma atteso della giuntura
+    ("obiettivo") e i fotogrammi mancanti ("restano", negativo se e gia stato superato)."""
+    bobina = max(100, int(bobina))
+    margine = max(0, min(int(margine), bobina // 2 - 1))
+    k = int(round(n / bobina))
+    if k < 1 or abs(n - k * bobina) > margine:
+        return None
+    return {"obiettivo": k * bobina, "restano": k * bobina - n}
 
 
 def load_settings():
@@ -644,7 +660,17 @@ class App:
             "thumb_seq": self.saved,
             "video": self.video,
             "controllo": {"running": self.controllo["running"], "progress": self.controllo["progress"], "error": self.controllo["error"]},
+            "giuntura": self._giuntura(),
         }
+
+    def _giuntura(self):
+        """Avviso di giuntura in arrivo (solo durante l'acquisizione)."""
+        if not (self.armed and self.s.get("giuntura_avviso")):
+            return None
+        try:
+            return avviso_giuntura(self.next_index - 1, self.s["bobina_fotogrammi"], self.s["giuntura_margine"])
+        except (TypeError, ValueError):
+            return None
 
     def info(self):
         return {

@@ -71,15 +71,19 @@ label.chk input{width:auto}
 .ingrandita{position:fixed;inset:0;z-index:60;background:#000d;display:none;align-items:center;justify-content:center;cursor:zoom-out}
 .ingrandita img{max-width:96vw;max-height:94vh}
 .sep{border:0;border-top:1px solid var(--line);margin:16px 0 0}
+.view.giuntura{border-color:var(--warn);box-shadow:inset 0 0 0 5px var(--warn);animation:gi 1.4s infinite}
+@keyframes gi{50%{box-shadow:inset 0 0 0 5px #e8a33d55}}
+.avviso{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--warn);color:#1b1305;border-radius:8px;padding:8px 18px;font-weight:700;font-size:17px;display:none;white-space:nowrap}
 </style>
 </head>
 <body>
 <main id="main">
-  <div class="view">
+  <div class="view" id="view">
     <img id="prev" alt="" style="display:none">
     <div class="ph" id="ph">Anteprima non attiva.<br>Scegli la periferica e premi «Apri telecamera».</div>
     <div class="badge" id="badge" style="display:none"></div>
     <div class="rec">● IN ACQUISIZIONE</div>
+    <div class="avviso" id="avviso"></div>
   </div>
   <div class="stats">
     <div class="stat"><b id="sSaved">0</b><span>fotogrammi salvati</span></div>
@@ -133,6 +137,13 @@ label.chk input{width:auto}
   <div class="last"><img id="lastImg" alt=""><div class="hint" id="lastInfo"></div></div>
   <div class="err" id="capErr"></div>
   <div class="hint" id="logInfo"></div>
+  <label class="chk"><input type="checkbox" id="giuntura_avviso"> Avvisa quando sta per arrivare una giuntura</label>
+  <div class="row">
+    <div><label>Fotogrammi per bobina</label><input type="number" id="bobina_fotogrammi" min="100" max="20000" step="100"></div>
+    <div><label>Avviso ± fotogrammi</label><input type="number" id="giuntura_margine" min="0" max="1000" step="50"></div>
+  </div>
+  <label class="chk"><input type="checkbox" id="giuntura_beep"> Segnale acustico all'inizio dell'avviso</label>
+  <div class="hint">Una bobina da 15 m ha circa 3600 fotogrammi; le bobine più grandi sono bobine piccole giuntate. Intorno a 3600, 7200, … la cornice dell'anteprima diventa gialla: attenzione, le vecchie giunture possono staccarsi o fare uno sbalzo nella meccanica.</div>
 
   <hr class="sep">
   <h2>4 · Controllo fotogrammi</h2>
@@ -199,7 +210,7 @@ async function api(name, data) {
   if (!j.ok) throw new Error(j.error);
   return j.data;
 }
-const SET = ["backend","resolution","fourcc","cam_fps","folder","project","format","jpg_quality","delay_ms","video_fps","video_codec","video_mbps","video_scale","video_name","video_folder","video_flip_v","video_trim_white","video_scartati_modo","video_fps_sel"];
+const SET = ["backend","resolution","fourcc","cam_fps","folder","project","format","jpg_quality","delay_ms","video_fps","video_codec","video_mbps","video_scale","video_name","video_folder","video_flip_v","video_trim_white","video_scartati_modo","video_fps_sel","giuntura_avviso","giuntura_beep","bobina_fotogrammi","giuntura_margine"];
 let info = null, st = null;
 
 function collect() {
@@ -272,6 +283,31 @@ async function refreshFolder() {
   } catch (e) {}
 }
 
+let giunturaAttiva = false;
+function beep() {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.28, 0.56].forEach(t => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = 880; g.gain.value = 0.15; o.connect(g); g.connect(ac.destination);
+      o.start(ac.currentTime + t); o.stop(ac.currentTime + t + 0.18);
+    });
+  } catch (e) {}
+}
+function mostraGiuntura(g) {
+  const on = !!g;
+  $("view").classList.toggle("giuntura", on);
+  $("avviso").style.display = on ? "block" : "none";
+  if (on) {
+    $("avviso").textContent = g.restano > 0
+      ? `⚠ Giuntura in arrivo: tra circa ${g.restano} fotogrammi (n. ${g.obiettivo})`
+      : g.restano === 0 ? `⚠ Giuntura attesa proprio ora (n. ${g.obiettivo})`
+      : `⚠ Giuntura probabilmente appena passata (n. ${g.obiettivo})`;
+    if (!giunturaAttiva && $("giuntura_beep").checked) beep();
+  }
+  giunturaAttiva = on;
+}
+
 async function poll() {
   let s; try { s = await api("state"); } catch (e) { return; }
   st = s;
@@ -290,7 +326,7 @@ async function poll() {
   $("btnStart").disabled = !open;
   $("btnTest").disabled = !armed;
   $("btnCam").disabled = armed;
-  for (const id of ["folder","btnFolder","project","format","jpg_quality","delay_ms"]) $(id).disabled = armed;
+  for (const id of ["folder","btnFolder","project","format","jpg_quality","delay_ms","giuntura_avviso","giuntura_beep","bobina_fotogrammi","giuntura_margine"]) $(id).disabled = armed;
   for (const id of ["device","resolution","fourcc","backend","cam_fps","btnRefresh"]) $(id).disabled = armed || open;
   $("camInfo").textContent = open ? `${s.cam_name}: ${s.cam_w}×${s.cam_h}, ${s.cam_fps} immagini/s in arrivo` : "";
   $("camErr").textContent = s.cam_error || "";
@@ -308,6 +344,7 @@ async function poll() {
     }
     $("lastInfo").textContent = `Ultimo salvato: n. ${s.next_index - 1}. Tempo click → immagine: ${s.lag_ms} ms.`;
   }
+  mostraGiuntura(s.giuntura);
   const c = s.controllo;
   $("cbar").style.width = (c.progress * 100) + "%";
   $("btnCtl").disabled = c.running || armed;
