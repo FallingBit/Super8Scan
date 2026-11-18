@@ -23,6 +23,20 @@
 //
 //--------------------------------------------------- CHANGELOG ---------------------------------------------------------
 //
+// Versione 2.27
+// - Se il motore si ferma durante la scansione (successo su una giuntura a 7 giri/s) il firmware riparte da solo:
+//   ferma il motore, aspetta un attimo, riparte piano per qualche giro e poi torna alla velocità normale. Dopo
+//   3 tentativi falliti compare NO HALL come prima
+// - Velocità di scansione ridotta a 6,5 giri/s (circa 4,8 fotogrammi/s) per avere più margine di coppia
+//
+// Versione 2.26
+// - Scansione più veloce: motore a 7 giri/s (prima 5), cioè circa 5,1 fotogrammi/s invece di 3,7. Velocità scelta con il
+//   firmware di prova: 7,0 giri/s ha retto 15 minuti, 7,5 giri/s va in stallo
+// - Rampa di accelerazione di 1,5 s all'avvio della scansione (evita gli stalli in partenza)
+// - L'attesa prima del click è proporzionale al tempo tra due passaggi del magnete (22 %): a velocità diverse il click
+//   cade nella stessa fase del giro
+// - Costanti passiAlSecondoScansione, rampaScansioneMs e frazioneStabilizzazione per regolare velocità e attesa
+//
 // Versione 2.25
 // - Dopo uno stop la scansione non fa il click se il magnete è già davanti al sensore (evita il fotogramma doppio)
 // - Se il sensore HALL non dà segnale per 3 secondi il motore si ferma e il display mostra NO HALL
@@ -99,7 +113,7 @@
 #include "LogoSuper8.h"
 
 
-String versioneFirmware = "v2.25";  // mostrata sul display
+String versioneFirmware = "v2.27";  // mostrata sul display
 
 
 // ============================================================================
@@ -141,8 +155,17 @@ MoToStepper motore(passiPerGiro, STEPDIR);  // il motore viene comandato in back
 // Se il motore gira al contrario del previsto, cambia il segno qui, senza toccare i fili.
 const int versoAvanti = 1;
 
-// Attesa, in millisecondi, tra il segnale del sensore HALL e il click: lascia stabilizzare pellicola e camera
-const int attesaStabilizzazioneMs = 60;
+// Velocità della SCANSIONE: frequenza degli impulsi STEP. A 1/2 di passo (400 passi per giro) 2600 passi/s sono
+// 6,5 giri/s del motore (circa 4,8 fotogrammi/s). Misure con il firmware di prova: 7,0 giri/s regge ma con poco
+// margine (si è fermato su una giuntura), 7,5 va in stallo.
+const long passiAlSecondoScansione = 2600;
+const long rampaScansioneMs = 1500;  // durata dell'accelerazione all'avvio
+
+// Attesa tra il segnale del sensore HALL e il click: lascia stabilizzare pellicola e camera. È una frazione del
+// tempo trascorso tra gli ultimi due passaggi del magnete (60 ms su 272 ms = 0,22), così a ogni velocità il click
+// cade nella stessa fase del giro. Per il primo fotogramma si usa attesaStabilizzazioneMs.
+const float frazioneStabilizzazione = 0.22;
+const int attesaStabilizzazioneMs = 43;
 
 
 // ============================================================================
@@ -203,9 +226,18 @@ const int pinSensoreHall = 34;  // ingresso analogico (ADC1)
 const int sogliaHallScatto = 1300;
 const int sogliaHallRiarmo = 1500;
 
-// Se durante la scansione il magnete non passa davanti al sensore per questo tempo, il sensore è scollegato o guasto
-// (o il motore è bloccato): il motore si ferma e il display mostra NO HALL.
-const unsigned long timeoutSegnaleHallMs = 3000;
+// Se durante la scansione il magnete non passa davanti al sensore per timeoutStalloMs, il motore si è fermato
+// (per esempio su una giuntura) oppure il sensore non funziona. Il firmware prova a ripartire: ferma il motore,
+// aspetta pausaRipartenzaMs e riparte piano (passiAlSecondoRipartenza). Dopo passaggiRipartenza passaggi del magnete
+// torna alla velocità normale. Se entro timeoutRipartenzaMs il magnete non passa, ritenta, fino a tentativiRipartenza
+// volte; poi il motore si ferma e il display mostra NO HALL (sensore scollegato o guasto, o motore bloccato).
+const unsigned long timeoutStalloMs = 1500;  // più dei 0,7 s che servono al primo passaggio durante la rampa di avvio
+const unsigned long timeoutRipartenzaMs = 2000;
+const unsigned long pausaRipartenzaMs = 300;
+const int tentativiRipartenza = 3;
+const long passiAlSecondoRipartenza = 1200;  // 3 giri/s
+const long rampaRipartenzaMs = 500;
+const int passaggiRipartenza = 3;
 
 
 // ============================================================================

@@ -1,7 +1,7 @@
 # Super8Scan: cronologia delle versioni
 
 Questa è la cronologia del **software per PC** (cartella `software/`). Il firmware dell'ESP32 ha una sua numerazione
-(attualmente 2.25) con il changelog in testa a `firmware/Super8FilmScanner/Super8FilmScanner.ino`.
+(attualmente 2.27) con il changelog in testa a `firmware/Super8FilmScanner/Super8FilmScanner.ino`.
 
 ## 1.1.0 (18/11/2026)
 

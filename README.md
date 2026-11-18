@@ -46,7 +46,7 @@ Prima di cominciare, il puntatore del mouse va posizionato sulla finestra di Sup
 | Cartella | Contenuto | Stato |
 |---|---|---|
 | [`software/`](software) | **Super8Scan** per Windows (Python): acquisizione a ogni click, controllo dei fotogrammi, creazione MP4, log delle lavorazioni ([cronologia](software/CHANGELOG.md)) | 1.1.0 |
-| [`firmware/`](firmware) | Firmware Arduino per l'ESP32: manopola, motore, lampada, click, display | v2.25 |
+| [`firmware/`](firmware) | Firmware Arduino per l'ESP32: manopola, motore, lampada, click, display | v2.27 |
 | [`hardware/`](hardware) | Descrizione del proiettore modificato, componenti, alimentazione, schema a blocchi; progetto KiCad, gerber del **PCB rev. 2.1** | rev. 2.1 |
 | [`docs/`](docs) | Foto del prototipo e immagine del PCB | |
 
@@ -155,8 +155,11 @@ avvisa (vedi sopra).
 ## Stato e cose da fare
 
 - Il sistema funziona: scansione, controllo dei fotogrammi e creazione del video sono state provate su pellicole vere.
-- Il firmware 2.25 (click doppio evitato dopo uno stop, errore NO HALL se manca il segnale del sensore, antirimbalzo
-  della manopola, pulsante del click a rilevamento del fronte) è stato provato sul campo con pellicole vere: funziona.
+- Il firmware 2.27 è provato su pellicole vere: scansione a circa 4,8 fotogrammi/s (prima 3,7) e, se il motore si ferma
+  su una giuntura, riparte da solo senza perdere né sbagliare fotogrammi. Nelle versioni precedenti (2.25) erano già
+  stati risolti il click doppio dopo uno stop, l'errore NO HALL, l'antirimbalzo della manopola e il pulsante del click.
+- Limiti del motore misurati: a 6,5 giri/s funziona con margine, a 7,0 regge ma si è fermato su una giuntura, a 7,5 va in
+  stallo (vedi [`firmware/README.md`](firmware/README.md)).
 - Il formato del foro per il **Normal8** non è ancora gestito nel controllo dei fotogrammi.
 - Il sensore Hall usato non è identificato con certezza (vedi [`hardware/README.md`](hardware/README.md)): conta che
   abbia le caratteristiche indicate.

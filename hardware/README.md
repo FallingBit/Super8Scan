@@ -18,7 +18,7 @@ Elenco di quanto usato nel prototipo (i componenti sono tutti comuni e facili da
 | Proiettore | Silma Bivox "D" Lux | Super8 e Normal8 |
 | Scheda di controllo | **AZDelivery ESP32-WROOM-32** | DevKit C, modulo ESP32-WROOM-32 |
 | Driver del motore | **BigTreeTech TMC2208 V3.0** | con dissipatore |
-| Motore | NEMA 17 **17HS13-0404S** | |
+| Motore | NEMA 17 **17HS13-0404S** | 0,4 A per fase; Vref del TMC2208 regolato a circa 0,58 V (≈ 0,4 A) |
 | Sensore di posizione | sensore Hall **lineare ratiometrico** a 3 pin, alimentato a 3,3 V; probabilmente Allegro **A1304** (da confermare: marcature `555G` e `1150`). Va bene qualsiasi sensore con le stesse caratteristiche (vedi sotto) | con magnete sulla ruota dello shutter |
 | Optoisolatore | **PC817**, led interno con resistenza da **1 kΩ** | pilotato dal pin 18 dell'ESP32 (3,3 V); simula il click del tasto sinistro del mouse |
 | Relé | modulo relé a 1 canale, 5 V, con led di stato (tipo JQC-3F-05VDC-C, 10 A) | accende e spegne il pannello LED (contatti a 12 V) |

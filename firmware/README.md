@@ -1,7 +1,7 @@
 # Firmware (ESP32)
 
 Cartella `Super8FilmScanner/`: sketch Arduino per l'**ESP32-WROOM-32** che comanda il proiettore modificato
-(versione **2.25**, vedi il changelog in testa a `Super8FilmScanner.ino`). Si compila con l'**Arduino IDE**.
+(versione **2.27**, vedi il changelog in testa a `Super8FilmScanner.ino`). Si compila con l'**Arduino IDE**.
 
 ## File dello sketch
 
@@ -82,17 +82,40 @@ Un **pulsante** (ingresso 19) abilita/disabilita i click del mouse a ogni pressi
 il led GRAB resta acceso fisso. Il pulsante si legge solo fuori dalla scansione (manopola a riposo o su lampada):
 la scelta vale poi per la scansione successiva.
 
+## Velocità del motore e ripartenza dopo uno stallo
+
+Il motore gira a una frequenza di passi fissa (`passiAlSecondoScansione`), a 1/2 di passo. Il rapporto tra la puleggia del
+motore e la meccanica è circa 1,36:1, quindi un giro del motore ogni 1,36 fotogrammi. Misure con un firmware di prova
+(sensore HALL, pellicola in carico, 24 V, Vref 0,577 V cioè circa 0,4 A):
+
+| Giri/s del motore | Passi/s | Fotogrammi/s | Esito |
+|---|---|---|---|
+| 5,0 (firmware 2.25) | 2000 | 3,7 | funziona |
+| 6,5 | 2600 | 4,8 | funziona, usato dalla 2.27 |
+| 7,0 | 2800 | 5,1 | regge 15 minuti ma si è fermato su una giuntura |
+| 7,5 | 3000 | 5,5 | stallo dopo circa 30 s |
+| 8,0 | 3200 | 5,9 | stallo dopo circa 3 s |
+
+Il motore è un 17HS13-0404S (0,4 A per fase, 30 Ω, 37 mH): la corrente non riesce a salire in fretta e la coppia cala
+con la velocità. Per questo non conviene salire oltre. Sulle giunture, più spesse, il motore può fermarsi: la 2.27 se ne
+accorge (il magnete non passa per 1,5 s), lo ferma, aspetta 0,3 s e riparte piano a 3 giri/s, poi torna alla velocità
+normale dopo 3 passaggi. Dopo 3 tentativi falliti compare NO HALL. Ogni ripartenza è scritta sulla seriale.
+
 ## Parametri da regolare (in `Super8FilmScanner.ino`)
 
 | Costante | Valore | Significato |
 |---|---|---|
-| `velocitaMax` | 6000 | velocità del motore, in decimi di giro al minuto (è il massimo usato) |
-| `attesaStabilizzazioneMs` | 60 ms | attesa dopo il segnale Hall prima del click |
+| `passiAlSecondoScansione` | 2600 | velocità del motore in scansione, in passi al secondo (a 1/2 passo: 6,5 giri/s ≈ 4,8 fotogrammi/s). 7,0 giri/s regge con poco margine (si è fermato su una giuntura), 7,5 va in stallo |
+| `rampaScansioneMs` | 1500 ms | durata dell'accelerazione all'avvio della scansione |
+| `velocitaMax` | 6000 | velocità, in decimi di giro al minuto, di caricamento (e riavvolgimento, dimezzata) |
+| `frazioneStabilizzazione` | 0,22 | attesa dopo il segnale Hall prima del click, come frazione del periodo tra due passaggi del magnete |
+| `attesaStabilizzazioneMs` | 43 ms | la stessa attesa per il primo fotogramma, quando il periodo non è ancora noto |
 | `sogliaHallScatto` / `sogliaHallRiarmo` | 1300 / 1500 | scatto / riarmo (dipendono da sensore e magnete) |
 | `durataClickMs` | 30 ms | durata del "click" simulato |
 | `antirimbalzoMs` | 50 ms | antirimbalzo della manopola |
 | `antirimbalzoUscitaMs` | 30 ms | tempo in cui la manopola deve restare fuori posizione prima di fermare il motore |
-| `timeoutSegnaleHallMs` | 3000 ms | tempo senza passaggi del magnete dopo il quale compare NO HALL |
+| `timeoutStalloMs` | 1500 ms | tempo senza passaggi del magnete dopo il quale il firmware considera il motore fermo e prova a ripartire da solo |
+| `tentativiRipartenza` | 3 | ripartenze consecutive prima di mostrare NO HALL (ogni ripartenza ha `timeoutRipartenzaMs` = 2000 ms, parte piano a `passiAlSecondoRipartenza` = 1200 passi/s e torna alla velocità normale dopo `passaggiRipartenza` = 3 passaggi) |
 | `versoAvanti` | 1 | verso di rotazione del motore (1 o -1); cambia il segno se il motore gira al contrario |
 
 Microstep: `MS1 = HIGH`, `MS2 = LOW` → **1/2 di passo** sul TMC2208.
