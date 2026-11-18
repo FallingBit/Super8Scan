@@ -1,0 +1,20 @@
+Super8Scan usa le seguenti componenti di terze parti.
+
+- OpenCV (opencv-python-headless) - Apache License 2.0. Le librerie incluse nei pacchetti ufficiali
+  contengono FFmpeg (LGPL 2.1+), usato da OpenCV per leggere i flussi video. Sorgenti: https://ffmpeg.org
+- NumPy - BSD-3-Clause
+- pywebview - BSD-3-Clause
+- PyInstaller - GPL v2 con eccezione per i programmi creati (solo per la compilazione dell'exe)
+
+FFmpeg (programma esterno, NON incluso in questo repository): per creare il video MP4 Super8Scan avvia
+ffmpeg.exe come programma separato. FFmpeg e' distribuito con licenza LGPL/GPL a seconda della build
+(le build con x264/x265 sono GPL). Va scaricato dall'utente: https://ffmpeg.org/download.html
+(build per Windows: https://www.gyan.dev/ffmpeg/builds/)
+
+Firmware (Arduino), librerie non incluse in questo repository (si installano dal Gestore librerie di Arduino IDE):
+- Adafruit GFX Library e Adafruit SSD1306 - licenza BSD.
+- MobaTools (MicroBahner, https://github.com/MicroBahner/MobaTools) - licenza GNU LGPL v2.1 (verificata sul
+  repository, versione 3.1.2). Il codice di Super8Scan non contiene codice di MobaTools: lo usa come libreria.
+  Chi distribuisce un firmware gia compilato con MobaTools deve rispettare le condizioni della LGPL
+  (indicare la libreria, fornire il testo della licenza e permettere di ricostruire il firmware con una versione
+  modificata della libreria; avendo i sorgenti dello sketch qui pubblicati questo e possibile).

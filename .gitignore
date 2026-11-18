@@ -1,0 +1,13 @@
+.venv/
+build/
+dist/
+__pycache__/
+*.pyc
+*.tmp
+
+# KiCad: file temporanei, copie di sicurezza e cache
+*.lck
+*-backups/
+_autosave-*
+fp-info-cache
+dist-*/

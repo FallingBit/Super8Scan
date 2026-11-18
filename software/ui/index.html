@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super8Scan</title>
+<style>
+:root{
+  --bg:#15171b; --panel:#1e2127; --panel2:#262a32; --line:#343945; --txt:#e7e9ee; --mut:#9aa1af;
+  --acc:#e8a33d; --acc2:#f3bd69; --ok:#4cc38a; --bad:#ef5b5b; --warn:#e8a33d;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--txt);font:14px/1.4 "Segoe UI",system-ui,sans-serif;display:flex;min-width:980px}
+main{flex:1;display:flex;flex-direction:column;padding:14px;gap:10px;min-width:0}
+aside{width:380px;overflow-y:auto;background:var(--panel);border-left:1px solid var(--line);padding:12px 14px 20px}
+.view{flex:1;min-height:0;background:#000;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.view img{max-width:100%;max-height:100%;display:block}
+.view .ph{color:var(--mut);text-align:center;padding:20px}
+.badge{position:absolute;top:10px;left:10px;background:#000a;border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:12px;color:var(--txt)}
+.rec{position:absolute;top:10px;right:10px;background:var(--bad);color:#fff;border-radius:6px;padding:3px 10px;font-weight:600;font-size:12px;display:none}
+.armed .rec{display:block;animation:bl 1.2s infinite}
+@keyframes bl{50%{opacity:.45}}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.stat b{display:block;font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{color:var(--mut);font-size:12px}
+.stat.warn b{color:var(--warn)} .stat.bad b{color:var(--bad)}
+.notice{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:6px;padding:8px 12px;color:var(--mut);font-size:13px}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin:18px 0 8px;font-weight:600}
+h2:first-child{margin-top:2px}
+label{display:block;color:var(--mut);font-size:12px;margin:8px 0 3px}
+input,select{width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:inherit}
+input[type=range]{padding:0;accent-color:var(--acc)}
+input:focus,select:focus{outline:1px solid var(--acc)}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row>*{flex:1}
+.row>.fit{flex:0 0 auto}
+button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font:inherit;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--acc)}
+button:disabled,input:disabled,select:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--acc);color:#1b1305;border-color:var(--acc);font-weight:600}
+button.primary:hover:not(:disabled){background:var(--acc2)}
+button.big{width:100%;padding:14px;font-size:17px;margin-top:6px}
+button.stop{background:var(--bad);border-color:var(--bad);color:#fff;font-weight:700}
+.hint{color:var(--mut);font-size:12px;margin-top:4px}
+.err{color:var(--bad);font-size:13px;margin-top:6px;min-height:0}
+.ok{color:var(--ok)}
+.bar{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar>i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
+.last{display:flex;gap:10px;align-items:center;margin-top:8px}
+.last img{width:120px;border-radius:4px;border:1px solid var(--line);display:none}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;background:var(--panel2);color:var(--mut)}
+.pill.on{background:#16382b;color:var(--ok)}
+label.chk{display:flex;align-items:center;gap:8px;color:var(--txt);font-size:13px;margin:8px 0 0}
+label.chk input{width:auto}
+.ovl{position:fixed;inset:0;background:#000c;z-index:50;display:flex;align-items:center;justify-content:center}
+.ovlbox{width:min(1150px,95vw);height:92vh;background:var(--panel);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column}
+.ovltop{display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ovltop label{margin:0;white-space:nowrap}
+.ovltop input[type=range]{width:140px}
+.grid{overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;align-content:start}
+.card{background:var(--panel2);border:2px solid var(--line);border-radius:8px;padding:6px}
+.card.scarta{border-color:var(--bad)}
+.card .imgs{display:flex;gap:6px;align-items:flex-start}
+.card img{border-radius:4px;display:block;cursor:zoom-in;min-width:0}
+.card .i1{flex:3;width:75%}.card .i2{flex:1;width:25%}
+.card .cap{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:6px;gap:8px}
+.card .cap label{margin:0;color:var(--txt);display:flex;gap:6px;align-items:center}
+.card .cap input{width:auto}
+.ingrandita{position:fixed;inset:0;z-index:60;background:#000d;display:none;align-items:center;justify-content:center;cursor:zoom-out}
+.ingrandita img{max-width:96vw;max-height:94vh}
+.sep{border:0;border-top:1px solid var(--line);margin:16px 0 0}
+</style>
+</head>
+<body>
+<main id="main">
+  <div class="view">
+    <img id="prev" alt="" style="display:none">
+    <div class="ph" id="ph">Anteprima non attiva.<br>Scegli la periferica e premi «Apri telecamera».</div>
+    <div class="badge" id="badge" style="display:none"></div>
+    <div class="rec">● IN ACQUISIZIONE</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="sSaved">0</b><span>fotogrammi salvati</span></div>
+    <div class="stat"><b id="sFps">–</b><span>fotogrammi/s medi</span></div>
+    <div class="stat"><b id="sPend">0</b><span>in scrittura / in attesa</span></div>
+    <div class="stat" id="stLate"><b id="sLate">0</b><span>in ritardo</span></div>
+    <div class="stat" id="stFail"><b id="sFail">0</b><span>non salvati</span></div>
+  </div>
+  <div class="notice" id="notice">Durante l'acquisizione ogni click sinistro del mouse, in qualsiasi punto dello schermo, salva un fotogramma. Il pulsante «Ferma» non conta.</div>
+</main>
+
+<aside id="side">
+  <h2>1 · Telecamera</h2>
+  <label>Periferica</label>
+  <div class="row"><select id="device"></select><button class="fit" id="btnRefresh" title="Cerca di nuovo">↻</button></div>
+  <div class="row">
+    <div><label>Risoluzione</label>
+      <select id="resolution"><option>3840x2160</option><option>2560x1440</option><option>1920x1080</option><option>1280x720</option></select></div>
+    <div><label>Formato dal cavo</label>
+      <select id="fourcc"><option value="MJPG">MJPG</option><option value="YUY2">YUY2 (non compresso)</option><option value="auto">Automatico</option></select></div>
+  </div>
+  <div class="row">
+    <div><label>Sistema video</label>
+      <select id="backend"><option value="dshow">DirectShow</option><option value="msmf">Media Foundation</option></select></div>
+    <div><label>Immagini/s richieste</label>
+      <select id="cam_fps"><option>30</option><option>25</option><option>24</option><option>60</option></select></div>
+  </div>
+  <button id="btnCam" style="width:100%;margin-top:10px">Apri telecamera</button>
+  <div class="hint" id="camInfo"></div>
+  <div class="err" id="camErr"></div>
+
+  <h2>2 · Salvataggio</h2>
+  <label>Cartella di lavoro</label>
+  <div class="row"><input id="folder"><button class="fit" id="btnFolder">Sfoglia…</button></div>
+  <label>Nome del film (sottocartella)</label>
+  <input id="project">
+  <div class="hint" id="folderInfo"></div>
+  <div class="row">
+    <div><label>Formato</label>
+      <select id="format"><option value="jpg">JPG (alta qualità)</option><option value="png">PNG (senza perdita)</option></select></div>
+    <div id="qBox"><label>Qualità JPG: <b id="qv"></b></label><input type="range" id="jpg_quality" min="85" max="100"></div>
+  </div>
+  <label>Attesa dopo il click: <b id="dv"></b> ms</label>
+  <input type="range" id="delay_ms" min="0" max="600" step="10">
+  <div class="hint">Lo scatto usa il primo fotogramma arrivato dopo questa attesa: serve a evitare l'immagine ancora in movimento che la scheda tiene in coda.</div>
+
+  <h2>3 · Acquisizione</h2>
+  <button class="primary big" id="btnStart" disabled>Avvia acquisizione</button>
+  <button class="stop big" id="btnStop" style="display:none">Ferma</button>
+  <div class="row" style="margin-top:8px"><button id="btnTest" disabled>Scatto manuale (barra spaziatrice)</button></div>
+  <div class="last"><img id="lastImg" alt=""><div class="hint" id="lastInfo"></div></div>
+  <div class="err" id="capErr"></div>
+  <div class="hint" id="logInfo"></div>
+
+  <hr class="sep">
+  <h2>4 · Controllo fotogrammi</h2>
+  <div class="hint">Cerca i fotogrammi acquisiti male (pellicola in movimento) guardando il foro a sinistra: se è spostato, deformato o sfocato il fotogramma è sospetto. Poi scegli tu quali scartare dal video.</div>
+  <div class="row" style="margin-top:8px"><button id="btnCtl">Analizza i fotogrammi</button><button id="btnCtlRivedi" disabled>Rivedi i sospetti…</button></div>
+  <div class="bar"><i id="cbar"></i></div>
+  <div class="hint" id="ctlMsg"></div>
+  <div class="err" id="ctlErr"></div>
+
+  <hr class="sep">
+  <h2>5 · Video MP4</h2>
+  <div class="row">
+    <div><label>Fotogrammi/s del film</label>
+      <select id="video_fps_sel"><option value="16">Normal8 (16 fps)</option><option value="18">Super8 (18 fps)</option><option value="24">Super8 (24 fps)</option><option value="custom">Custom</option></select>
+      <input type="number" id="video_fps" min="1" max="120" step="1" style="display:none;margin-top:6px" title="Fotogrammi al secondo"></div>
+    <div><label>Bitrate (Mbit/s)</label><input type="number" id="video_mbps" min="1" max="500" step="1"></div>
+  </div>
+  <div class="row">
+    <div><label>Codec</label><select id="video_codec"></select></div>
+    <div><label>Risoluzione</label>
+      <select id="video_scale"><option value="orig">Originale</option><option value="3840">4K (3840)</option><option value="2560">2560</option><option value="1920">Full HD (1920)</option><option value="1280">HD (1280)</option></select></div>
+  </div>
+  <label>Nome del file (vuoto = nome del film)</label>
+  <input id="video_name" placeholder="film1.mp4">
+  <label>Cartella del video (vuota = quella dei fotogrammi)</label>
+  <div class="row"><input id="video_folder" placeholder="Stessa cartella dei fotogrammi"><button class="fit" id="btnVFolder">Sfoglia…</button></div>
+  <label class="chk"><input type="checkbox" id="video_flip_v"> Ribalta l'immagine in verticale</label>
+  <label class="chk"><input type="checkbox" id="video_trim_white"> Escludi i fotogrammi bianchi in fondo</label>
+  <div class="hint" id="blankInfo"></div>
+  <label>Fotogrammi scartati dal controllo</label>
+  <select id="video_scartati_modo"><option value="salta">Saltali (il video è più corto)</option><option value="ripeti">Ripeti il fotogramma precedente</option></select>
+  <div class="hint" id="discInfo"></div>
+  <div class="row" style="margin-top:10px">
+    <button class="primary" id="btnVideo">Crea video MP4</button>
+    <button class="fit" id="btnCancel" style="display:none">Annulla</button>
+  </div>
+  <div class="bar"><i id="vbar"></i></div>
+  <div class="hint" id="vmsg"></div>
+  <div class="err" id="verr"></div>
+  <div class="row" style="margin-top:6px"><button id="btnOpen" style="display:none">Apri la cartella</button></div>
+  <div class="hint" style="margin-top:10px">FFmpeg: <span id="ffState"></span> <a href="#" id="ffPick" style="color:var(--acc)">indica…</a></div>
+  <div class="hint" id="ver"></div>
+</aside>
+
+<div class="ovl" id="ovl" style="display:none">
+  <div class="ovlbox">
+    <div class="ovltop">
+      <b id="ovlTit"></b>
+      <label>Spostamento del foro oltre il <b id="spv"></b>%</label><input type="range" id="sposta" min="3" max="25">
+      <button id="ovlTutti">Scarta tutti</button><button id="ovlNessuno">Tieni tutti</button>
+      <button class="primary" id="ovlChiudi">Chiudi</button>
+    </div>
+    <div class="grid" id="ovlGrid"></div>
+  </div>
+</div>
+<div class="ingrandita" id="big"><img id="bigImg" alt=""></div>
+
+<script>
+const TOKEN = "__TOKEN__";
+const $ = id => document.getElementById(id);
+async function api(name, data) {
+  const r = await fetch("/api/" + name, {method: "POST", headers: {"X-Token": TOKEN, "Content-Type": "application/json"}, body: JSON.stringify(data || {})});
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error);
+  return j.data;
+}
+const SET = ["backend","resolution","fourcc","cam_fps","folder","project","format","jpg_quality","delay_ms","video_fps","video_codec","video_mbps","video_scale","video_name","video_folder","video_flip_v","video_trim_white","video_scartati_modo","video_fps_sel"];
+let info = null, st = null;
+
+function collect() {
+  const d = {device: parseInt($("device").value || "0")};
+  for (const k of SET) {
+    const el = $(k); if (!el) continue;
+    d[k] = el.type === "checkbox" ? el.checked : (el.type === "range" || el.type === "number" ? Number(el.value) : el.value);
+  }
+  d.cam_fps = Number(d.cam_fps);
+  return d;
+}
+function fillSettings(s) {
+  for (const k of SET) if ($(k)) { if ($(k).type === "checkbox") $(k).checked = !!s[k]; else $(k).value = s[k]; }
+  $("qv").textContent = s.jpg_quality; $("dv").textContent = s.delay_ms;
+  syncFormat(); syncFps();
+}
+function syncFps() {
+  const v = $("video_fps_sel").value;
+  if (v !== "custom") $("video_fps").value = v;          // le voci fisse impostano il valore
+  $("video_fps").style.display = v === "custom" ? "" : "none";
+}
+function syncFormat() { $("qBox").style.visibility = $("format").value === "jpg" ? "visible" : "hidden"; }
+function fillDevices(list, sel) {
+  const el = $("device"); el.innerHTML = "";
+  const n = Math.max(list.length, info.sim ? 1 : 4);
+  for (let i = 0; i < n; i++) {
+    const o = document.createElement("option"); o.value = i;
+    o.textContent = list[i] ? `${i} · ${list[i]}` : (info.sim ? "Telecamera simulata" : `Periferica ${i}`);
+    el.appendChild(o);
+  }
+  el.value = Math.min(sel, n - 1);
+}
+function fillCodecs(enc, cur) {
+  const names = {libx264: ["h264", "H.264 x264 slow (qualità massima)"], libx265: ["h265", "H.265 (HEVC, file più piccoli)"],
+                 h264_nvenc: ["h264_nvenc", "H.264 con scheda NVIDIA"], hevc_nvenc: ["hevc_nvenc", "H.265 con scheda NVIDIA"]};
+  const el = $("video_codec"); el.innerHTML = "";
+  for (const e of enc) {
+    const o = document.createElement("option"); o.value = names[e][0]; o.textContent = names[e][1]; el.appendChild(o);
+    if (e === "libx264") { const m = document.createElement("option"); m.value = "h264_medium"; m.textContent = "H.264 x264 medium (più veloce)"; el.appendChild(m); }
+  }
+  if (!enc.length) { const o = document.createElement("option"); o.textContent = "(FFmpeg assente)"; el.appendChild(o); }
+  if ([...el.options].some(o => o.value === cur)) el.value = cur;
+}
+function showFF() {
+  $("ffState").innerHTML = info.ffmpeg ? `<span class="ok">trovato</span> (${info.ffmpeg})` : `<span style="color:var(--bad)">non trovato</span>`;
+  $("btnVideo").disabled = !info.ffmpeg;
+}
+
+let timer;
+async function init() {
+  info = await api("info");
+  $("ver").textContent = "Super8Scan " + info.version + " · FallingBit";
+  fillSettings(info.settings);
+  fillDevices(info.devices, info.settings.device);
+  fillCodecs(info.encoders, info.settings.video_codec);
+  showFF();
+  if (!info.devices.length && info.ffmpeg && !info.sim) refreshDevices();
+  refreshFolder();
+  timer = setInterval(poll, 300);
+}
+async function refreshDevices() {
+  try { const l = await api("devices"); fillDevices(l, Number($("device").value || 0)); } catch (e) {}
+}
+async function refreshFolder() {
+  try {
+    const f = await api("folder_info", {folder: $("folder").value, project: $("project").value});
+    aggiornaCtl();
+    $("blankInfo").textContent = f.blank_tail ? `Alla fine della scansione ci sono ${f.blank_tail} fotogrammi bianchi: saranno esclusi dal video.` : "";
+    $("folderInfo").textContent = f.frames ? `La cartella contiene già ${f.frames} fotogrammi: si prosegue dal n. ${f.last + 1}.` : "Cartella nuova: si parte dal fotogramma 1.";
+  } catch (e) {}
+}
+
+async function poll() {
+  let s; try { s = await api("state"); } catch (e) { return; }
+  st = s;
+  const armed = s.armed, open = s.cam_open;
+  document.body.classList.toggle("armed", armed);
+  $("main").classList.toggle("armed", armed);
+  $("sSaved").textContent = s.saved;
+  $("sFps").textContent = armed && s.avg_fps ? s.avg_fps.toFixed(1) : "–";
+  $("sPend").textContent = s.pending + " / " + s.queued;
+  $("sLate").textContent = s.late; $("sFail").textContent = s.failed;
+  $("stLate").classList.toggle("warn", s.late > 0);
+  $("stFail").classList.toggle("bad", s.failed > 0);
+  $("btnCam").textContent = open ? "Chiudi telecamera" : "Apri telecamera";
+  $("btnStart").style.display = armed ? "none" : "";
+  $("btnStop").style.display = armed ? "" : "none";
+  $("btnStart").disabled = !open;
+  $("btnTest").disabled = !armed;
+  $("btnCam").disabled = armed;
+  for (const id of ["folder","btnFolder","project","format","jpg_quality","delay_ms"]) $(id).disabled = armed;
+  for (const id of ["device","resolution","fourcc","backend","cam_fps","btnRefresh"]) $(id).disabled = armed || open;
+  $("camInfo").textContent = open ? `${s.cam_name}: ${s.cam_w}×${s.cam_h}, ${s.cam_fps} immagini/s in arrivo` : "";
+  $("camErr").textContent = s.cam_error || "";
+  const prev = $("prev");
+  if (open) {
+    if (prev.style.display === "none" || !prev.src.includes("/preview")) prev.src = "/preview?t=" + TOKEN + "&r=" + Date.now();
+    prev.style.display = ""; $("ph").style.display = "none";
+    $("badge").style.display = ""; $("badge").textContent = `${s.cam_w}×${s.cam_h} · ${s.cam_fps} img/s`;
+  } else {
+    prev.style.display = "none"; prev.removeAttribute("src"); $("ph").style.display = ""; $("badge").style.display = "none";
+  }
+  if (s.saved > 0 && armed || (s.saved > 0 && $("lastImg").dataset.n !== String(s.saved))) {
+    if ($("lastImg").dataset.n !== String(s.saved)) {
+      $("lastImg").dataset.n = s.saved; $("lastImg").src = "/last.jpg?t=" + TOKEN + "&n=" + s.saved; $("lastImg").style.display = "block";
+    }
+    $("lastInfo").textContent = `Ultimo salvato: n. ${s.next_index - 1}. Tempo click → immagine: ${s.lag_ms} ms.`;
+  }
+  const c = s.controllo;
+  $("cbar").style.width = (c.progress * 100) + "%";
+  $("btnCtl").disabled = c.running || armed;
+  $("ctlErr").textContent = c.error || "";
+  if (c.running) $("ctlMsg").textContent = "Analisi in corso…";
+  if (ctlWasRunning && !c.running) aggiornaCtl();
+  ctlWasRunning = c.running;
+  if (s.last_log) $("logInfo").textContent = "Log salvato: " + s.last_log;
+  const v = s.video;
+  $("vbar").style.width = (v.progress * 100) + "%";
+  $("vmsg").textContent = v.msg || "";
+  $("verr").textContent = v.error || "";
+  $("btnVideo").disabled = !info.ffmpeg || v.running || armed;
+  $("btnCancel").style.display = v.running ? "" : "none";
+  $("btnOpen").style.display = v.done ? "" : "none";
+}
+
+$("btnRefresh").onclick = refreshDevices;
+$("ffPick").onclick = async e => {
+  e.preventDefault();
+  try { const p = await api("pick_file"); if (p) { info = Object.assign(info, await api("set_ffmpeg", {path: p})); showFF(); fillCodecs(info.encoders, $("video_codec").value); } } catch (err) { $("verr").textContent = err.message; }
+};
+$("btnCam").onclick = async () => {
+  $("camErr").textContent = "";
+  try {
+    if (st && st.cam_open) await api("close_camera");
+    else await api("open_camera", collect());
+  } catch (e) { $("camErr").textContent = e.message; }
+  poll();
+};
+$("btnFolder").onclick = async () => {
+  try { const p = await api("pick_folder", {start: $("folder").value}); if (p) { $("folder").value = p; saveNow(); refreshFolder(); } } catch (e) { $("capErr").textContent = e.message; }
+};
+$("btnVFolder").onclick = async () => {
+  try { const p = await api("pick_folder", {start: $("video_folder").value || $("folder").value}); if (p) { $("video_folder").value = p; saveNow(); } } catch (e) { $("verr").textContent = e.message; }
+};
+$("btnStart").onclick = async () => {
+  $("capErr").textContent = "";
+  try { await api("start", collect()); } catch (e) { $("capErr").textContent = e.message; }
+  poll();
+};
+$("btnStop").onclick = async () => { await api("stop"); refreshFolder(); poll(); };
+$("btnTest").onclick = () => api("manual");
+document.addEventListener("keydown", e => { if (e.code === "Space" && st && st.armed && !/INPUT|SELECT|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); api("manual"); } });
+$("btnVideo").onclick = async () => { $("verr").textContent = ""; try { await api("build_video", collect()); } catch (e) { $("verr").textContent = e.message; } poll(); };
+$("btnCancel").onclick = () => api("cancel_video");
+$("btnOpen").onclick = () => { const p = st.video.path; api("open_folder", {path: p.substring(0, p.lastIndexOf("\\"))}); };
+
+// Il click sul pulsante Ferma non deve scattare un fotogramma
+const stopBtn = $("btnStop");
+stopBtn.addEventListener("mouseenter", () => api("ignore", {v: true}));
+stopBtn.addEventListener("mouseleave", () => api("ignore", {v: false}));
+document.addEventListener("mouseleave", () => api("ignore", {v: false}));
+
+let saveT;
+function saveNow() { api("settings", collect()).catch(() => {}); }
+for (const k of SET.concat(["device"])) {
+  const el = $(k); if (!el) continue;
+  el.addEventListener("input", () => {
+    $("qv").textContent = $("jpg_quality").value; $("dv").textContent = $("delay_ms").value; syncFormat();
+    clearTimeout(saveT); saveT = setTimeout(saveNow, 300);
+    if (k === "folder" || k === "project" || k === "video_trim_white") { if (k === "video_trim_white") { clearTimeout(saveT); saveNow(); setTimeout(refreshFolder, 200); } else refreshFolder(); }
+  });
+}
+let ctl = null, ctlWasRunning = false;
+async function aggiornaCtl() {
+  try { ctl = await api("controllo_stato"); } catch (e) { return; }
+  if (ctl.running) return;
+  $("btnCtlRivedi").disabled = !ctl.pronto;
+  if (ctl.pronto) {
+    $("ctlMsg").textContent = `Analizzati ${ctl.fotogrammi} fotogrammi: ${ctl.sospetti.length} sospetti, ${ctl.scartati} da scartare.`;
+    if (ctl.sospetti.length > 0.10 * ctl.fotogrammi) $("ctlMsg").textContent += " Attenzione: sono molti, il foro potrebbe non essere stato riconosciuto bene: guarda le miniature prima di scartare.";
+    $("discInfo").textContent = ctl.scartati ? `${ctl.scartati} fotogrammi scartati dal controllo verranno ${$("video_scartati_modo").value === "ripeti" ? "sostituiti con il precedente" : "saltati"}.` : "";
+  } else {
+    $("ctlMsg").textContent = "Analisi non ancora fatta per questo film.";
+    $("discInfo").textContent = "";
+  }
+}
+$("btnCtl").onclick = async () => {
+  $("ctlErr").textContent = "";
+  try { await api("controllo_avvia", collect()); } catch (e) { $("ctlErr").textContent = e.message; }
+  poll();
+};
+function testoMotivo(x) {
+  if (x.motivo === "spostato") return `foro spostato del ${Math.abs(x.valore * 100).toFixed(0)}%`;
+  if (x.motivo === "deformato") return "foro deformato";
+  return "foro sfocato o scia";
+}
+function disegna() {
+  const g = $("ovlGrid"); g.innerHTML = "";
+  const lista = ctl.sospetti.slice(0, 400);
+  $("ovlTit").textContent = `${ctl.sospetti.length} sospetti · ${ctl.scartati} da scartare` + (ctl.sospetti.length > 400 ? " (mostrati i primi 400)" : "");
+  $("spv").textContent = Math.round(ctl.sposta); $("sposta").value = Math.round(ctl.sposta);
+  for (const x of lista) {
+    const d = document.createElement("div"); d.className = "card" + (x.scartato ? " scarta" : "");
+    d.innerHTML = `<div class="imgs"><img class="i1" loading="lazy" src="/thumb?t=${TOKEN}&n=${x.n}&k=intero"><img class="i2" loading="lazy" src="/thumb?t=${TOKEN}&n=${x.n}&k=foro"></div>
+      <div class="cap"><span>n. ${x.n} · ${testoMotivo(x)}</span><label><input type="checkbox" ${x.scartato ? "checked" : ""}> Scarta</label></div>`;
+    d.querySelector("input").onchange = async e => {
+      x.scartato = e.target.checked; d.classList.toggle("scarta", x.scartato);
+      ctl.scartati += x.scartato ? 1 : -1;
+      $("ovlTit").textContent = `${ctl.sospetti.length} sospetti · ${ctl.scartati} da scartare`;
+      await api("controllo_scarta", {numeri: [x.n], valore: x.scartato});
+    };
+    for (const im of d.querySelectorAll("img")) im.onclick = () => { $("bigImg").src = `/thumb?t=${TOKEN}&n=${x.n}&k=grande`; $("big").style.display = "flex"; };
+    g.appendChild(d);
+  }
+}
+$("btnCtlRivedi").onclick = async () => { await aggiornaCtl(); if (ctl && ctl.pronto) { disegna(); $("ovl").style.display = "flex"; } };
+$("ovlChiudi").onclick = () => { $("ovl").style.display = "none"; aggiornaCtl(); };
+$("big").onclick = () => { $("big").style.display = "none"; };
+async function tutti(v) {
+  const nums = ctl.sospetti.map(x => x.n);
+  await api("controllo_scarta", {numeri: nums, valore: v});
+  ctl = await api("controllo_stato"); disegna();
+}
+$("ovlTutti").onclick = () => tutti(true);
+$("ovlNessuno").onclick = () => tutti(false);
+let spT;
+$("sposta").addEventListener("input", () => {
+  $("spv").textContent = $("sposta").value;
+  clearTimeout(spT);
+  spT = setTimeout(async () => { ctl = await api("controllo_valuta", {sposta: Number($("sposta").value)}); disegna(); }, 400);
+});
+$("video_scartati_modo").addEventListener("change", aggiornaCtl);
+$("video_fps_sel").addEventListener("change", syncFps);
+init();
+aggiornaCtl();
+</script>
+</body>
+</html>

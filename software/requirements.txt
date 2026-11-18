@@ -1,0 +1,7 @@
+# Dipendenze di Super8Scan
+opencv-python-headless==5.0.0.93   # Apache-2.0 (le DLL incluse contengono FFmpeg LGPL)
+numpy==2.5.5                       # BSD-3-Clause
+pywebview==6.2.1                   # BSD-3-Clause
+
+# Solo per creare l'eseguibile
+pyinstaller==6.22.3                # GPL con eccezione: l'exe prodotto non è vincolato
