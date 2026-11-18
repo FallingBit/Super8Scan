@@ -176,6 +176,7 @@ while a.video["running"]: time.sleep(0.2)
 pr5 = json.loads(subprocess.run([os.path.join(os.path.dirname(ff), "ffprobe.exe"), "-v", "error", "-count_frames", "-select_streams", "v",
     "-show_entries", "stream=codec_name,nb_read_frames", "-of", "json", a.video["path"]], capture_output=True, text=True).stdout)["streams"][0]
 check(a.video["done"] and pr5["codec_name"] == "h264" and int(pr5["nb_read_frames"]) == 100, "x264 medium: video valido (%s)" % pr5)
+check(" in " in a.video["msg"] and a.video["msg"].startswith("Video creato"), "video: il messaggio finale indica la durata (%s)" % a.video["msg"])
 a.s.update(video_codec="h264")
 # film senza foro riconoscibile (immagini uniformi): messaggio chiaro
 cart2 = os.path.join(tmp, "ctl", "senzaforo"); os.makedirs(cart2)
@@ -191,6 +192,10 @@ check(g(3600, 3600, 200)["restano"] == 0 and g(3800, 3600, 200)["restano"] == -2
 check(g(1, 3600, 200) is None and g(0, 3600, 200) is None and g(5000, 3600, 200) is None, "giuntura: fuori zona nessun avviso")
 check(g(7100, 3600, 200)["obiettivo"] == 7200 and g(10800, 3600, 200)["obiettivo"] == 10800, "giuntura: si ripete a ogni bobina")
 check(g(3500, 3600, 0) is None and g(3600, 3600, 0)["restano"] == 0, "giuntura: margine zero")
+check([m.formatta_durata(x) for x in (0, 45, 59.6, 243, 3900)] == ["0 s", "45 s", "1 min 00 s", "4 min 03 s", "1 h 05 min"], "durate leggibili")
+check(m.stima_codifica([(0.0, 0)], 100) == (None, None) and m.stima_codifica([(0.0, 0), (0.5, 10)], 100) == (None, None), "stima codifica: troppo presto, nessun valore")
+check(m.stima_codifica([(0.0, 0), (10.0, 50)], 250) == (5.0, 40.0), "stima codifica: 5 fotogrammi/s, 40 s residui")
+check(m.stima_codifica([(0.0, 10), (10.0, 10)], 100) == (None, None), "stima codifica: ferma, nessun valore")
 a.s.update(giuntura_avviso=True, bobina_fotogrammi=3600, giuntura_margine=200)
 a.armed = False; a.next_index = 3501
 check(a.state()["giuntura"] is None, "giuntura: nessun avviso se non si sta acquisendo")

@@ -29,7 +29,7 @@ import controllo
 from controllo import fotogramma_bianco, bianchi_finali
 
 APP_NAME = "Super8Scan"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 CREATE_NO_WINDOW = 0x08000000
 
 
@@ -72,6 +72,28 @@ DEFAULTS = {
     "bobina_fotogrammi": 3600,   # fotogrammi di una bobina da 15 m (7,5 cm): le bobine grandi sono bobine piccole giuntate
     "giuntura_margine": 200,     # l'avviso va da (bobina - margine) a (bobina + margine), e si ripete a ogni bobina
 }
+
+
+def formatta_durata(sec):
+    """Durata in forma leggibile: 45 s, 4 min 03 s, 1 h 05 min."""
+    sec = max(0, int(round(sec)))
+    if sec < 60:
+        return "%d s" % sec
+    if sec < 3600:
+        return "%d min %02d s" % (sec // 60, sec % 60)
+    return "%d h %02d min" % (sec // 3600, (sec % 3600) // 60)
+
+
+def stima_codifica(campioni, totale):
+    """Velocita (fotogrammi/s) e tempo residuo (s) della codifica, dagli ultimi campioni [(istante, fotogrammi), ...].
+    Ritorna (None, None) finche i dati non bastano per una stima ragionevole."""
+    if len(campioni) < 2:
+        return None, None
+    (t0, f0), (t1, f1) = campioni[0], campioni[-1]
+    if t1 - t0 < 1.0 or f1 <= f0:
+        return None, None
+    fps = (f1 - f0) / (t1 - t0)
+    return fps, max(0.0, (totale - f1) / fps)
 
 
 def avviso_giuntura(n, bobina, margine):
@@ -912,6 +934,8 @@ class App:
             p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                                  encoding="utf-8", errors="replace", creationflags=CREATE_NO_WINDOW)
             self.video_proc = p
+            t_inizio = time.monotonic()
+            campioni = []            # (istante, fotogrammi): finestra degli ultimi secondi per la stima
             err_lines = []
             threading.Thread(target=lambda: err_lines.extend(p.stderr.readlines()), daemon=True).start()
             for line in p.stdout:
@@ -920,7 +944,16 @@ class App:
                     try:
                         fr = int(line.split("=")[1])
                         self.video["progress"] = min(1.0, fr / total)
-                        self.video["msg"] = "Codifica: fotogramma %d di %d" % (fr, total)
+                        adesso = time.monotonic()
+                        campioni.append((adesso, fr))
+                        while len(campioni) > 2 and adesso - campioni[0][0] > 20:
+                            campioni.pop(0)
+                        fps_cod, residuo = stima_codifica(campioni, total)
+                        msg = "Codifica: fotogramma %d di %d" % (fr, total)
+                        if fps_cod:
+                            msg += " · %s fotogrammi/s · tempo residuo circa %s" % (
+                                ("%.1f" % fps_cod).replace(".", ","), formatta_durata(residuo))
+                        self.video["msg"] = msg
                     except ValueError:
                         pass
             p.wait()
@@ -939,7 +972,8 @@ class App:
                 self.video["progress"] = 1.0
                 self.video["done"] = True
                 self.video["path"] = out
-                self.video["msg"] = "Video creato (%.1f MB)" % (os.path.getsize(out) / 1e6)
+                self.video["msg"] = "Video creato (%.1f MB) in %s" % (os.path.getsize(out) / 1e6,
+                                                                    formatta_durata(time.monotonic() - t_inizio))
                 if esclusi:
                     self.video["msg"] += " · %d fotogrammi bianchi finali esclusi" % esclusi
                 if n_scartati:
