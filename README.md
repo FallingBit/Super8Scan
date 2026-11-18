@@ -164,8 +164,8 @@ fosse interessato a studiarlo o a costruirne uno simile. Non è un prodotto comm
 
 ## Licenza
 
-Il codice è libero: puoi copiarlo, modificarlo e distribuirlo, **citando l'autore originale, FallingBit**
-(licenza MIT, vedi [LICENSE](LICENSE)).
+Il codice è libero: puoi copiarlo, modificarlo e distribuirlo, **mantenendo l'avviso di copyright di FallingBit**
+(licenza MIT, vedi [LICENSE](LICENSE)). Citare il progetto originale è comunque gradito.
 
 Le librerie di terze parti sono elencate in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). Alcune hanno licenze
 non permissive (per esempio la libreria del firmware MobaTools, LGPL-2.1, e le librerie di OpenCV che includono
