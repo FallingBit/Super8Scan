@@ -23,6 +23,13 @@
 Giuntatrice a nastro **3M 702 Super 8 Splicer** (New Matrix) usata per riparare le giunture della pellicola prima della
 scansione.
 
+## Bobine e giunzione del LEAD
+
+| | | |
+|---|---|---|
+| ![Bobina da 12 cm](foto/bobina%2012cm.webp) | ![Bobina da 7 cm](foto/bobina%207cm.webp) | ![Giunzione del LEAD bianco con la pellicola](foto/giuntatrice%20pellicola.webp) |
+| **Bobina da 12 cm**. | **Bobina da 7 cm**. | **Giunzione** di un LEAD bianco con la pellicola nella giuntatrice, prima della scansione. |
+
 Nota: sul PCB del prototipo la serigrafia dei connettori di alimentazione dice «+12v», ma è una scritta del primo
 progetto: oggi il motore è alimentato a 24 V (vedi [`../hardware/README.md`](../hardware/README.md)).
 

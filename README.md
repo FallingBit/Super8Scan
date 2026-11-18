@@ -115,7 +115,7 @@ Così lavora l'autore; è solo un'indicazione, ognuno può adattarla.
 
 1. **Preparazione della pellicola**: pulirla e controllare le giunture, rifacendole se serve (l'autore usa una
    giuntatrice a nastro 3M 702, vedi la [foto](docs/README.md#giuntatrice)).
-2. **LEAD bianco**: se manca, aggiungerlo all'inizio, così non si perde la parte iniziale della pellicola, che serve
+2. **LEAD bianco** (vedi la [foto](docs/README.md#bobine-e-giunzione-del-lead)): se manca, aggiungerlo all'inizio, così non si perde la parte iniziale della pellicola, che serve
    per il caricamento.
 3. **Caricamento**: caricare la pellicola fino ai primi fotogrammi e solo allora accendere la lampada. Con pochi led
    il calore è trascurabile e non c'è rischio di bruciare la pellicola.
