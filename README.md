@@ -53,6 +53,8 @@ compreso il foro della pellicola usato dal controllo dei fotogrammi; le immagini
 | [![Fotogramma 430 (Normal8)](docs/esempi/miniatura_000430.webp)](docs/esempi/fotogramma_000430.jpg) | [![Fotogramma 1275](docs/esempi/miniatura_001275.webp)](docs/esempi/fotogramma_001275.jpg) |
 | [![Fotogramma 3033](docs/esempi/miniatura_003033.webp)](docs/esempi/fotogramma_003033.jpg) | [![Fotogramma 3191](docs/esempi/miniatura_003191.webp)](docs/esempi/fotogramma_003191.jpg) |
 
+**Video di esempio** (Super8, creato da una scansione fatta con questo scanner): <https://youtu.be/SkZqkTiNc5s>
+
 ## Contenuto del repository
 
 | Cartella | Contenuto | Stato |
