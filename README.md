@@ -41,6 +41,13 @@ dal proiettore e la si riavvolge a parte.
 Fermando il proiettore si ferma anche l'acquisizione, che può essere ripresa dallo stesso punto anche il giorno dopo.
 Prima di cominciare, il puntatore del mouse va posizionato sulla finestra di Super8Scan.
 
+## Esempi di fotogrammi
+
+Quattro fotogrammi di esempio, salvati direttamente dal programma alla massima qualità (4K, JPEG qualità 100), senza
+alcuna elaborazione: [430](docs/esempi/fotogramma_000430.jpg), [1275](docs/esempi/fotogramma_001275.jpg),
+[3033](docs/esempi/fotogramma_003033.jpg), [3191](docs/esempi/fotogramma_003191.jpg) (circa 8-9 MB ciascuno).
+Mostrano cosa esce dallo scanner: si vede l'intero gate, compreso il foro della pellicola usato dal controllo dei fotogrammi.
+
 ## Contenuto del repository
 
 | Cartella | Contenuto | Stato |
@@ -48,7 +55,7 @@ Prima di cominciare, il puntatore del mouse va posizionato sulla finestra di Sup
 | [`software/`](software) | **Super8Scan** per Windows (Python): acquisizione a ogni click, controllo dei fotogrammi, creazione MP4, log delle lavorazioni ([cronologia](software/CHANGELOG.md)) | 1.1.3 |
 | [`firmware/`](firmware) | Firmware Arduino per l'ESP32: manopola, motore, lampada, click, display | v2.27 |
 | [`hardware/`](hardware) | Descrizione del proiettore modificato, componenti, alimentazione, schema a blocchi; progetto KiCad, gerber del **PCB rev. 2.1** | rev. 2.1 |
-| [`docs/`](docs) | Foto del prototipo e immagine del PCB | |
+| [`docs/`](docs) | Foto del prototipo, immagine del PCB e [fotogrammi di esempio](docs/esempi) | |
 
 ## Cosa serve
 
