@@ -184,6 +184,18 @@ check(roi4 is not None and abs(roi4["x"] - 380 / 1920) < 0.01 and abs(roi4["y"] 
 res4 = controllo.analizza(cart4)
 check("feat" in res4 and [x["n"] for x in controllo.valuta(res4["feat"])] == [25], "Normal8: trovato solo il fotogramma spostato")
 check(res4["roi"].get("formato") == "normal8" and controllo.calibra(cart, [n for _, n in controllo.elenco_fotogrammi(cart)]).get("formato") == "super8", "formato riconosciuto dal foro: Normal8 e Super8")
+# Normal8 con i fori tagliati dal bordo alto e basso dell'immagine (come nelle pellicole vere): si usa il foro piu grande
+cart5 = os.path.join(tmp, "ctl", "normal8tagliato"); os.makedirs(cart5)
+for i in range(1, 41):
+    im = (rng.random((1080, 1920, 3)) * 40 + 10).astype(np.uint8)
+    im[:, :60] = 5
+    dy = 120 if i == 25 else int(rng.integers(-3, 4))
+    im[:120 + dy, 100:560] = 250                                      # foro in alto, tagliato dal bordo
+    im[790 + dy:, 100:560] = 250                                      # foro in basso, tagliato dal bordo
+    cv2.imwrite(os.path.join(cart5, "fotogramma_%06d.jpg" % i), im, [cv2.IMWRITE_JPEG_QUALITY, 90])
+res5 = controllo.analizza(cart5)
+check("roi" in res5 and res5["roi"].get("formato") == "normal8" and res5["roi"].get("taglio") == "sotto", "Normal8 con fori tagliati: riconosciuto (%s)" % (res5.get("roi") or res5,))
+check("feat" in res5 and [x["n"] for x in controllo.valuta(res5["feat"])] == [25], "Normal8 con fori tagliati: trovato solo il fotogramma spostato")
 # l'analisi di un film Normal8 lo segnala una sola volta all'interfaccia
 a.s.update(folder=os.path.join(tmp, "ctl"), project="normal8")
 a.controllo_avvia()

@@ -92,20 +92,34 @@ def _cerca_foro(med, H, Wr, largo):
         candidati = []
         for i in range(1, n):
             x, y, w, h, area = (int(v) for v in st[i])
-            if y <= 1 or y + h >= H - 1:        # tocca il bordo alto o basso: non e un foro
+            taglio = None
+            if y <= 1 and y + h >= H - 1:       # tocca il bordo alto e basso: non e un foro
                 continue
+            if y <= 1 or y + h >= H - 1:
+                # Normal8: nell'inquadratura i fori possono essere tagliati dal bordo alto o basso dell'immagine
+                if not largo:
+                    continue
+                taglio = "sopra" if y <= 1 else "sotto"
             if x / Wr < 0.01 or (x + w) / Wr > xmax:   # il foro sta nella striscia di sinistra
                 continue
-            if area < 0.001 * H * Wr or not (0.5 <= h / max(w, 1) <= 8):
+            if area < 0.001 * H * Wr or not ((0.2 if taglio else 0.5) <= h / max(w, 1) <= 8):
                 continue
             if area < 0.6 * w * h:               # il foro e un rettangolo pieno
                 continue
-            if not (0.18 <= h / H <= 0.40) or not (centro_min <= (y + h / 2) / H <= centro_max):
+            if taglio:
+                if h / H < 0.08:
+                    continue
+            elif not (0.18 <= h / H <= 0.40) or not (centro_min <= (y + h / 2) / H <= centro_max):
                 continue
-            candidati.append((area if not largo else -abs((y + h / 2) / H - 0.5), area, x, y, w, h))
+            # Si preferisce un foro intero (il piu vicino al centro); se sono tutti tagliati, quello piu grande
+            chiave = (0, area) if taglio else (1, -abs((y + h / 2) / H - 0.5) if largo else area)
+            candidati.append((chiave, x, y, w, h, taglio))
         if candidati:
-            _, _, x, y, w, h = max(candidati)
-            return {"x": x / Wr, "y": y / H, "w": w / Wr, "h": h / H, "formato": "normal8" if largo else "super8"}
+            _, x, y, w, h, taglio = max(candidati, key=lambda c: c[0])
+            roi = {"x": x / Wr, "y": y / H, "w": w / Wr, "h": h / H, "formato": "normal8" if largo else "super8"}
+            if taglio:
+                roi["taglio"] = taglio
+            return roi
     return None
 
 
@@ -166,7 +180,15 @@ def misura(im, roi):
     def bordo(y):
         s, e = max(0, y - 6), min(len(d), y + 6)
         return float(d[s:e].max()) if e > s else 0.0
-    nitidezza = min(bordo(a), bordo(b)) / contrasto
+    taglio = roi.get("taglio")
+    if taglio == "sotto":      # foro tagliato dal bordo basso: si misura solo il bordo alto, l'altezza e quella di riferimento
+        b = a + int(round(h))
+        nitidezza = bordo(a) / contrasto
+    elif taglio == "sopra":    # foro tagliato dal bordo alto: si misura solo il bordo basso
+        a = b - int(round(h))
+        nitidezza = bordo(b) / contrasto
+    else:
+        nitidezza = min(bordo(a), bordo(b)) / contrasto
     return ((ya + a) / H, (ya + b) / H, (ya + (a + b) / 2) / H, float(nitidezza), contrasto)
 
 

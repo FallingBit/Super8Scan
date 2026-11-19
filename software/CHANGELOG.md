@@ -3,6 +3,13 @@
 Questa è la cronologia del **software per PC** (cartella `software/`). Il firmware dell'ESP32 ha una sua numerazione
 (attualmente 2.27) con il changelog in testa a `firmware/Super8FilmScanner/Super8FilmScanner.ino`.
 
+## 1.1.3 (19/11/2026)
+
+### Correzioni
+- **Normal8 con i fori tagliati dal bordo dell'immagine**: nell'inquadratura reale i due fori Normal8 sono spesso tagliati dal
+  bordo alto e basso. Il controllo ora li riconosce (si usa il foro più grande, misurando solo il bordo interno visibile).
+  Provato su una pellicola Normal8 vera di 1317 fotogrammi: foro riconosciuto, nessun falso avviso.
+
 ## 1.1.2 (19/11/2026)
 
 ### Novità

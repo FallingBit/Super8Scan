@@ -45,7 +45,7 @@ Prima di cominciare, il puntatore del mouse va posizionato sulla finestra di Sup
 
 | Cartella | Contenuto | Stato |
 |---|---|---|
-| [`software/`](software) | **Super8Scan** per Windows (Python): acquisizione a ogni click, controllo dei fotogrammi, creazione MP4, log delle lavorazioni ([cronologia](software/CHANGELOG.md)) | 1.1.2 |
+| [`software/`](software) | **Super8Scan** per Windows (Python): acquisizione a ogni click, controllo dei fotogrammi, creazione MP4, log delle lavorazioni ([cronologia](software/CHANGELOG.md)) | 1.1.3 |
 | [`firmware/`](firmware) | Firmware Arduino per l'ESP32: manopola, motore, lampada, click, display | v2.27 |
 | [`hardware/`](hardware) | Descrizione del proiettore modificato, componenti, alimentazione, schema a blocchi; progetto KiCad, gerber del **PCB rev. 2.1** | rev. 2.1 |
 | [`docs/`](docs) | Foto del prototipo e immagine del PCB | |
