@@ -44,9 +44,14 @@ Prima di cominciare, il puntatore del mouse va posizionato sulla finestra di Sup
 ## Esempi di fotogrammi
 
 Quattro fotogrammi di esempio, salvati direttamente dal programma alla massima qualità (4K, JPEG qualità 100), senza
-alcuna elaborazione: [430](docs/esempi/fotogramma_000430.jpg), [1275](docs/esempi/fotogramma_001275.jpg),
-[3033](docs/esempi/fotogramma_003033.jpg), [3191](docs/esempi/fotogramma_003191.jpg) (circa 8-9 MB ciascuno).
-Mostrano cosa esce dallo scanner: si vede l'intero gate, compreso il foro della pellicola usato dal controllo dei fotogrammi.
+alcuna elaborazione e senza metadati. Cliccando sulla miniatura si apre l'originale (circa 8-9 MB). Si vede l'intero gate,
+compreso il foro della pellicola usato dal controllo dei fotogrammi; le immagini sono come le riprende la telecamera
+(capovolte: nel video il programma le ribalta con l'opzione apposita).
+
+| | |
+|---|---|
+| [![Fotogramma 430 (Normal8)](docs/esempi/miniatura_000430.webp)](docs/esempi/fotogramma_000430.jpg) | [![Fotogramma 1275](docs/esempi/miniatura_001275.webp)](docs/esempi/fotogramma_001275.jpg) |
+| [![Fotogramma 3033](docs/esempi/miniatura_003033.webp)](docs/esempi/fotogramma_003033.jpg) | [![Fotogramma 3191](docs/esempi/miniatura_003191.webp)](docs/esempi/fotogramma_003191.jpg) |
 
 ## Contenuto del repository
 
