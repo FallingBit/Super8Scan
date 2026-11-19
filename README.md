@@ -45,7 +45,7 @@ Prima di cominciare, il puntatore del mouse va posizionato sulla finestra di Sup
 
 | Cartella | Contenuto | Stato |
 |---|---|---|
-| [`software/`](software) | **Super8Scan** per Windows (Python): acquisizione a ogni click, controllo dei fotogrammi, creazione MP4, log delle lavorazioni ([cronologia](software/CHANGELOG.md)) | 1.1.0 |
+| [`software/`](software) | **Super8Scan** per Windows (Python): acquisizione a ogni click, controllo dei fotogrammi, creazione MP4, log delle lavorazioni ([cronologia](software/CHANGELOG.md)) | 1.1.1 |
 | [`firmware/`](firmware) | Firmware Arduino per l'ESP32: manopola, motore, lampada, click, display | v2.27 |
 | [`hardware/`](hardware) | Descrizione del proiettore modificato, componenti, alimentazione, schema a blocchi; progetto KiCad, gerber del **PCB rev. 2.1** | rev. 2.1 |
 | [`docs/`](docs) | Foto del prototipo e immagine del PCB | |
@@ -160,7 +160,7 @@ avvisa (vedi sopra).
   stati risolti il click doppio dopo uno stop, l'errore NO HALL, l'antirimbalzo della manopola e il pulsante del click.
 - Limiti del motore misurati: a 6,5 giri/s funziona con margine, a 7,0 regge ma si è fermato su una giuntura, a 7,5 va in
   stallo (vedi [`firmware/README.md`](firmware/README.md)).
-- Il formato del foro per il **Normal8** non è ancora gestito nel controllo dei fotogrammi.
+- Il controllo dei fotogrammi riconosce anche il foro **Normal8** (provato solo su immagini del LEAD bianco; da provare su pellicola vera).
 - Il sensore Hall usato non è identificato con certezza (vedi [`hardware/README.md`](hardware/README.md)): conta che
   abbia le caratteristiche indicate.
 

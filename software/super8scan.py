@@ -29,7 +29,7 @@ import controllo
 from controllo import fotogramma_bianco, bianchi_finali
 
 APP_NAME = "Super8Scan"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 CREATE_NO_WINDOW = 0x08000000
 
 

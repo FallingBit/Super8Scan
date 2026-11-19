@@ -77,24 +77,14 @@ def bianchi_finali(cartella, nomi):
 
 # ----------------------------------------------------------------------------- foro della pellicola
 
-def calibra(cartella, nomi, campioni=60, frazione=0.30):
-    """Trova il foro: mediana di una sessantina di fotogrammi sparsi (il contenuto delle scene si cancella,
-    il foro resta). Restituisce la zona del foro come frazioni dell'immagine, oppure None se non lo trova
-    (per esempio se il foro tocca il bordo alto e basso, come in certe pellicole Normal8)."""
-    idx = np.linspace(0, len(nomi) - 1, min(campioni, len(nomi))).astype(int)
-    strisce = []
-    forma = None
-    for i in idx:
-        im = leggi(os.path.join(cartella, nomi[i]), 4)
-        if im is None or e_bianco(im):
-            continue
-        forma = im.shape
-        strisce.append(im[:, :int(im.shape[1] * frazione)])
-    if len(strisce) < 5:
-        return None
-    med = np.median(np.stack(strisce), axis=0).astype(np.uint8)
-    H, Wr = forma
+def _cerca_foro(med, H, Wr, largo):
+    """Cerca il foro nell'immagine mediana "med" (alta H, la cui larghezza completa e Wr).
+    largo=False: foro Super8, nella striscia di sinistra, alto circa un quarto del fotogramma e al centro.
+    largo=True: foro Normal8, piu lontano dal bordo e in qualunque punto dell'altezza (nell'inquadratura se ne vedono
+    anche due, uno sopra e uno sotto). Restituisce la zona come frazioni dell'immagine, oppure None."""
     otsu, _ = cv2.threshold(med, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    xmax = 0.45 if largo else 0.20
+    centro_min, centro_max = (0.05, 0.95) if largo else (0.30, 0.70)
     # Si provano soglie via via piu alte: con certe pellicole il foro tocca il bordo chiaro dell'immagine e con la
     # soglia di Otsu i due si fondono; il foro e quasi bianco, quindi a una soglia piu alta si separa.
     for soglia in [otsu] + [t for t in (100, 130, 150, 170, 190, 210) if t > otsu]:
@@ -104,19 +94,43 @@ def calibra(cartella, nomi, campioni=60, frazione=0.30):
             x, y, w, h, area = (int(v) for v in st[i])
             if y <= 1 or y + h >= H - 1:        # tocca il bordo alto o basso: non e un foro
                 continue
-            if x / Wr < 0.01 or (x + w) / Wr > 0.20:   # il foro sta nella striscia di sinistra
+            if x / Wr < 0.01 or (x + w) / Wr > xmax:   # il foro sta nella striscia di sinistra
                 continue
             if area < 0.001 * H * Wr or not (0.5 <= h / max(w, 1) <= 8):
                 continue
             if area < 0.6 * w * h:               # il foro e un rettangolo pieno
                 continue
-            if not (0.18 <= h / H <= 0.40) or not (0.30 <= (y + h / 2) / H <= 0.70):
-                continue                         # il foro Super8 e alto circa un quarto del fotogramma e al centro
-            candidati.append((area, x, y, w, h))
+            if not (0.18 <= h / H <= 0.40) or not (centro_min <= (y + h / 2) / H <= centro_max):
+                continue
+            candidati.append((area if not largo else -abs((y + h / 2) / H - 0.5), area, x, y, w, h))
         if candidati:
-            _, x, y, w, h = max(candidati)
+            _, _, x, y, w, h = max(candidati)
             return {"x": x / Wr, "y": y / H, "w": w / Wr, "h": h / H}
     return None
+
+
+def calibra(cartella, nomi, campioni=60, frazione=0.30):
+    """Trova il foro: mediana di una sessantina di fotogrammi sparsi (il contenuto delle scene si cancella,
+    il foro resta). Restituisce la zona del foro come frazioni dell'immagine, oppure None se non lo trova
+    (per esempio se il foro tocca il bordo alto e basso, come in certe pellicole Normal8).
+    Prima si cerca un foro Super8; se non c'e si cerca un foro Normal8 (vedi _cerca_foro)."""
+    idx = np.linspace(0, len(nomi) - 1, min(campioni, len(nomi))).astype(int)
+    strisce = []
+    forma = None
+    for i in idx:
+        im = leggi(os.path.join(cartella, nomi[i]), 4)
+        if im is None or e_bianco(im):
+            continue
+        forma = im.shape
+        strisce.append(im[:, :int(im.shape[1] * 0.5)])
+    if len(strisce) < 5:
+        return None
+    med = np.median(np.stack(strisce), axis=0).astype(np.uint8)
+    H, Wr = forma
+    roi = _cerca_foro(med[:, :int(Wr * frazione)], H, Wr, False)
+    if roi is None:
+        roi = _cerca_foro(med, H, Wr, True)
+    return roi
 
 
 def misura(im, roi):

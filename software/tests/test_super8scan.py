@@ -169,6 +169,20 @@ for i in range(1, 41):
     cv2.imwrite(os.path.join(cart3, "fotogramma_%06d.jpg" % i), im, [cv2.IMWRITE_JPEG_QUALITY, 90])
 roi3 = controllo.calibra(cart3, [n for _, n in controllo.elenco_fotogrammi(cart3)])
 check(roi3 is not None and abs(roi3["x"] - 140 / 1920) < 0.01, "foro a contatto con l'immagine riconosciuto (%s)" % (roi3,))
+# pellicola Normal8: foro piu lontano dal bordo, due fori nell'inquadratura (uno in alto e uno in basso)
+cart4 = os.path.join(tmp, "ctl", "normal8"); os.makedirs(cart4)
+for i in range(1, 41):
+    im = (rng.random((1080, 1920, 3)) * 120 + 60).astype(np.uint8)
+    im[:, :380] = 5
+    dy = 60 if i == 25 else 0                                        # un fotogramma spostato
+    y0 = 130 + int(rng.integers(-3, 4)) + dy
+    im[y0:y0 + 240, 380:700] = 250                                    # foro in alto
+    im[y0 + 690:y0 + 930, 380:700] = 250                              # foro in basso (passo di 690 px)
+    cv2.imwrite(os.path.join(cart4, "fotogramma_%06d.jpg" % i), im, [cv2.IMWRITE_JPEG_QUALITY, 90])
+roi4 = controllo.calibra(cart4, [n for _, n in controllo.elenco_fotogrammi(cart4)])
+check(roi4 is not None and abs(roi4["x"] - 380 / 1920) < 0.01 and abs(roi4["y"] - 130 / 1080) < 0.02, "foro Normal8 riconosciuto (%s)" % (roi4,))
+res4 = controllo.analizza(cart4)
+check("feat" in res4 and [x["n"] for x in controllo.valuta(res4["feat"])] == [25], "Normal8: trovato solo il fotogramma spostato")
 # preset x264 "medium": si seleziona dal codec e produce un video valido con lo stesso numero di fotogrammi
 a.s.update(video_codec="h264_medium", video_scartati_modo="ripeti", video_name="medium.mp4")
 a.build_video()
