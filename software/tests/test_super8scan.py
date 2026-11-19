@@ -183,6 +183,14 @@ roi4 = controllo.calibra(cart4, [n for _, n in controllo.elenco_fotogrammi(cart4
 check(roi4 is not None and abs(roi4["x"] - 380 / 1920) < 0.01 and abs(roi4["y"] - 130 / 1080) < 0.02, "foro Normal8 riconosciuto (%s)" % (roi4,))
 res4 = controllo.analizza(cart4)
 check("feat" in res4 and [x["n"] for x in controllo.valuta(res4["feat"])] == [25], "Normal8: trovato solo il fotogramma spostato")
+check(res4["roi"].get("formato") == "normal8" and controllo.calibra(cart, [n for _, n in controllo.elenco_fotogrammi(cart)]).get("formato") == "super8", "formato riconosciuto dal foro: Normal8 e Super8")
+# l'analisi di un film Normal8 lo segnala una sola volta all'interfaccia
+a.s.update(folder=os.path.join(tmp, "ctl"), project="normal8")
+a.controllo_avvia()
+while a.controllo["running"]: time.sleep(0.2)
+st8 = a.controllo_stato()
+check(st8["formato"] == "normal8" and st8["formato_nuovo"] is True and a.controllo_stato()["formato_nuovo"] is False, "stato: formato Normal8, novita segnalata una volta (%s)" % st8.get("formato"))
+a.s.update(project="film")
 # preset x264 "medium": si seleziona dal codec e produce un video valido con lo stesso numero di fotogrammi
 a.s.update(video_codec="h264_medium", video_scartati_modo="ripeti", video_name="medium.mp4")
 a.build_video()

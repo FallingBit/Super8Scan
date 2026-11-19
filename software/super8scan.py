@@ -29,7 +29,7 @@ import controllo
 from controllo import fotogramma_bianco, bianchi_finali
 
 APP_NAME = "Super8Scan"
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 CREATE_NO_WINDOW = 0x08000000
 
 
@@ -456,6 +456,7 @@ class App:
         self.last_log = ""              # ultimo log scritto
         self.controllo_extra = None
         self._ctl = None     # risultati del controllo fotogrammi della cartella attuale
+        self._ctl_nuovo = False     # true dopo un'analisi appena finita: l'interfaccia puo preselezionare il formato
         self.window = None
         self.ffmpeg = find_ffmpeg(self.s.get("ffmpeg", ""))
         self.encoders = ffmpeg_encoders(self.ffmpeg) if self.ffmpeg else []
@@ -788,6 +789,7 @@ class App:
             self._ctl = {"dir": d, "roi": r["roi"], "feat": r["feat"], "sposta": sposta,
                          "sospetti": sosp, "scartati": set(x["n"] for x in sosp)}
             self._ctl_salva()
+            self._ctl_nuovo = True
         except Exception as e:
             self.controllo["error"] = str(e)
         finally:
@@ -828,6 +830,9 @@ class App:
             out["scartati"] = len(c["scartati"])
             out["sospetti"] = [dict(x, scartato=x["n"] in c["scartati"]) for x in c["sospetti"]]
             out["fotogrammi"] = len(c["feat"])
+            out["formato"] = c["roi"].get("formato", "super8")     # riconosciuto dal foro: "super8" o "normal8"
+            out["formato_nuovo"] = self._ctl_nuovo
+            self._ctl_nuovo = False
         return out
 
     def miniatura(self, n, tipo):

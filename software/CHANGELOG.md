@@ -3,6 +3,13 @@
 Questa è la cronologia del **software per PC** (cartella `software/`). Il firmware dell'ESP32 ha una sua numerazione
 (attualmente 2.27) con il changelog in testa a `firmware/Super8FilmScanner/Super8FilmScanner.ino`.
 
+## 1.1.2 (19/11/2026)
+
+### Novità
+- **Formato del video scelto dai fori**: dopo l'analisi dei fotogrammi, se il foro è Normal8 la sezione *Video MP4* passa
+  a Normal8 (16 fps); se è Super8 passa a Super8 (18 fps), a meno che fosse già scelto 18 o 24 fps. Un messaggio sotto il controllo lo
+  segnala, e la scelta si può cambiare a mano.
+
 ## 1.1.1 (19/11/2026)
 
 ### Novità

@@ -417,6 +417,15 @@ async function aggiornaCtl() {
   if (ctl.pronto) {
     $("ctlMsg").textContent = `Analizzati ${ctl.fotogrammi} fotogrammi: ${ctl.sospetti.length} sospetti, ${ctl.scartati} da scartare.`;
     if (ctl.sospetti.length > 0.10 * ctl.fotogrammi) $("ctlMsg").textContent += " Attenzione: sono molti, il foro potrebbe non essere stato riconosciuto bene: guarda le miniature prima di scartare.";
+    if (ctl.formato_nuovo) {                       // analisi appena finita: il foro dice se la pellicola e Normal8 o Super8
+      if (ctl.formato === "normal8") {
+        $("video_fps_sel").value = "16"; syncFps(); saveNow();
+        $("ctlMsg").textContent += " Pellicola Normal8 riconosciuta dai fori: per il video è stato scelto Normal8 (16 fps).";
+      } else if ($("video_fps_sel").value !== "18" && $("video_fps_sel").value !== "24") {   // 18 e 24 sono entrambi Super8
+        $("video_fps_sel").value = "18"; syncFps(); saveNow();
+        $("ctlMsg").textContent += " Pellicola Super8 riconosciuta dai fori: per il video è stato scelto Super8 (18 fps).";
+      }
+    }
     $("discInfo").textContent = ctl.scartati ? `${ctl.scartati} fotogrammi scartati dal controllo verranno ${$("video_scartati_modo").value === "ripeti" ? "sostituiti con il precedente" : "saltati"}.` : "";
   } else {
     $("ctlMsg").textContent = "Analisi non ancora fatta per questo film.";

@@ -105,7 +105,7 @@ def _cerca_foro(med, H, Wr, largo):
             candidati.append((area if not largo else -abs((y + h / 2) / H - 0.5), area, x, y, w, h))
         if candidati:
             _, _, x, y, w, h = max(candidati)
-            return {"x": x / Wr, "y": y / H, "w": w / Wr, "h": h / H}
+            return {"x": x / Wr, "y": y / H, "w": w / Wr, "h": h / H, "formato": "normal8" if largo else "super8"}
     return None
 
 
